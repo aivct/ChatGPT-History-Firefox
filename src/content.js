@@ -328,7 +328,16 @@ function main() {
         let pdf_svg = `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`
         pdf.innerHTML = `${pdf_svg} Download PDF`;
         nav.insertBefore(pdf, nav.children[1]);
-
+		
+		let download_json_button = document.createElement("a");
+        download_json_button.id = 'download-json-button'
+		download_json_button.onclick = () => {
+			download_as_json();
+		}
+		download_json_button.setAttribute("class", "flex py-3 px-3 items-center gap-3 rounded-md hover:bg-gray-500/10 transition-colors duration-200 text-white cursor-pointer text-sm flex-shrink-0 border border-white/20");
+		download_json_button.innerHTML = `${pdf_svg} Download JSON`;
+		nav.insertBefore(download_json_button, nav.children[2]);
+		
         let png = document.createElement("a");
         png.id = 'download-png-button'
         png.onclick = () => {
@@ -337,7 +346,7 @@ function main() {
         png.setAttribute("class", "flex py-3 px-3 items-center gap-3 rounded-md hover:bg-gray-500/10 transition-colors duration-200 text-white cursor-pointer text-sm flex-shrink-0 border border-white/20");
         let png_svg = `<svg xmlns="http://www.w3.org/2000/svg" style="fill: white" stroke="currentColor" width="24" height="25" viewBox="0 0 512 512"><!--! Font Awesome Pro 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 60.7 28.7 32 64 32H448c35.3 0 64 28.7 64 64V416c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V96zM323.8 202.5c-4.5-6.6-11.9-10.5-19.8-10.5s-15.4 3.9-19.8 10.5l-87 127.6L170.7 297c-4.6-5.7-11.5-9-18.7-9s-14.2 3.3-18.7 9l-64 80c-5.8 7.2-6.9 17.1-2.9 25.4s12.4 13.6 21.6 13.6h96 32H424c8.9 0 17.1-4.9 21.2-12.8s3.6-17.4-1.4-24.7l-120-176zM112 192c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48z"/></svg>`
         png.innerHTML = `${png_svg} Download PNG`;
-        nav.insertBefore(png, nav.children[2]);
+        nav.insertBefore(png, nav.children[3]);
 
         let h = document.createElement("a");
         h.id = 'download-html-button'
@@ -347,12 +356,15 @@ function main() {
         h.setAttribute("class", "flex py-3 px-3 items-center gap-3 rounded-md hover:bg-gray-500/10 transition-colors duration-200 text-white cursor-pointer text-sm flex-shrink-0 border border-white/20");
         let h_svg = `<svg xmlns="http://www.w3.org/2000/svg" style="fill: white" stroke="currentColor" width="24" height="25" viewBox="0 0 448 512"><!--! Font Awesome Pro 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. --><path d="M246.6 9.4c-12.5-12.5-32.8-12.5-45.3 0l-128 128c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 109.3V320c0 17.7 14.3 32 32 32s32-14.3 32-32V109.3l73.4 73.4c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3l-128-128zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32v64c0 53 43 96 96 96H352c53 0 96-43 96-96V352c0-17.7-14.3-32-32-32s-32 14.3-32 32v64c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V352z"/></svg>`
         h.innerHTML = `${h_svg} Share Page`;
-        nav.insertBefore(h, nav.children[3]);
+        nav.insertBefore(h, nav.children[4]);
     }
+	/*
     if (!firefox){
         add_buttons()
     }
-
+	 */
+	 add_buttons();
+	 
     const Format = {
         PNG: "png",
         PDF: "pdf",
@@ -393,9 +405,80 @@ function main() {
                 window.open(data.url, "_blank");
             });
     }
+	
+	function getObjectById(id, list) { // created by ChatGPT
+		// Iterate over the list of objects
+		for (let i = 0; i < list.length; i++) {
+			const obj = list[i];
+
+			// Check if the object has an `id` property that matches the given id
+			if (obj.id && obj.id === id) {
+				// If a match is found, return the object
+				return obj;
+			}
+		}
+
+		// If no match is found, return null
+		return null;
+	}
+	
+	function downloadAsHTML() {
+		const data = getData();
+		let string = JSON.stringify(data);
+		let bytes = new TextEncoder().encode(string);
+		let blob = new Blob([bytes], {
+			type: "application/json;charset=utf-8"
+		});
+		download_blob_as_file(blob, "thread.html");
+	}
+	
+	function download_as_json() {
+		browser.storage.local.get({threads: null}).then((result) => {
+            t = result.threads;
+			let thread = getObjectById(id, t);
+			if(thread)
+			{
+				download_blob_as_file(convert_thread_to_JSON_file(thread), "thread.json");
+			}
+		});
+	}
+	
+	function convert_thread_to_JSON_file(thread)
+	{
+		let data = thread;
+		let string = JSON.stringify(data);
+		let blob = encode_string_as_blob(string);
+		return blob;
+	}
+	
+	function encode_string_as_blob(string)
+	{
+		let bytes = new TextEncoder().encode(string);
+		let blob = new Blob([bytes], {
+			type: "application/json;charset=utf-8"
+		});
+		return blob;
+	}
+
+	// basially using the fileSaver.js, it's an IIFE to save on implementing the <a> singleton.
+	const download_blob_as_file = (function()
+	{
+		let a = document.createElement("a");
+		document.body.appendChild(a);
+		a.style = "display: none";
+		return function (blob, file_name)
+		{
+			let url = window.URL.createObjectURL(blob);
+			a.href = url;
+			a.download = file_name;
+			a.click();
+			window.URL.revokeObjectURL(url);
+		}
+	})();
 
     function handleImg(imgData) {
-        const binaryData = atob(imgData.split("base64,")[1]);
+        /*
+		const binaryData = atob(imgData.split("base64,")[1]);
         const data = [];
         for (let i = 0; i < binaryData.length; i++) {
             data.push(binaryData.charCodeAt(i));
@@ -404,11 +487,11 @@ function main() {
         const url = URL.createObjectURL(blob);
 
         window.open(url, "_blank");
-
-        //   const a = document.createElement("a");
-        //   a.href = url;
-        //   a.download = "chat-gpt-image.png";
-        //   a.click();
+		 */
+        const a = document.createElement("a");
+        a.href = imgData;
+         a.download = "chat-gpt-image.png";
+        a.click();
     }
     function handlePdf(imgData, canvas, pixelRatio) {
         const { jsPDF } = window.jspdf;
