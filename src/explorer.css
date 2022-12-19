@@ -141,3 +141,7 @@ i.continue{
 	padding-left: 5px;
 	padding-right: 5px;
 }
+
+.light [contentEditable] {
+	background-color: #D7D7DE;
+}
